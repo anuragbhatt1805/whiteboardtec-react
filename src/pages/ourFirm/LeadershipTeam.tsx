@@ -5,7 +5,7 @@ import { useEffect } from "react";
 const banner : BannerPropType = {
     header: "Leadership",
     subheader: "Team",
-    image: "/src/assets/image/banner-image/team-banner.jpg",
+    image: "https://firebasestorage.googleapis.com/v0/b/whiteboard-website.appspot.com/o/assets%2Fimage%2Fbanner-image%2Fteam-banner.jpg?alt=media&token=9345d405-1069-4bd1-a467-c3679f352096",
 }
 
 const team : LeaderDetailType[] = [
@@ -38,8 +38,8 @@ function LeadershipTeam() {
   return (
     <>
         < PageBanner {...banner}/>
-        <div className="mx-28 my-3">
-          <section className="mt-3 mb-10 p-2 grid grid-cols-1 gap-y-0 gap-x-0 md:gap-y-5 md:gap-x-10 md:grid-cols-2">
+        <div className="mx-auto lg:max-w-screen-lg xl:max-w-screen-xl my-3">
+          <section className="mt-3 mb-10 p-2 grid grid-cols-1 gap-y-0 gap-x-0 max-md:gap-y-12 md:gap-x-10 md:grid-cols-2">
             {
               team.map((leader, index) => {
                 return(
@@ -48,11 +48,11 @@ function LeadershipTeam() {
                       key={index}
                       className="rounded-xl border-2 shadow-lg drop-shadow-lg bg-white p-7"
                     >
-                      <div className="text-[#6abd45] font-semibold text-xl flex flex-wrap flex-col">
+                      <div className="text-[#6abd45] font-semibold text-3xl flex flex-wrap flex-col">
                         {leader.name}
                       </div>
-                      <div className="text-black font-semibold texl-lg">{leader.designation}</div>
-                      <div className="font-normal text-sm text-justify text-gray-700 leading-relaxed">
+                      <div className="text-black font-semibold texl-2xl">{leader.designation}</div>
+                      <div className="font-normal text-lg text-justify text-gray-700 leading-relaxed">
                         {
                           leader.thoughts.map((thought, index) => {
                             return(
@@ -61,11 +61,11 @@ function LeadershipTeam() {
                           })
                         }
                       </div>
-                      <div className="font-normal text-sm text-justify text-gray-700 leading-relaxed">
+                      <div className="font-normal text-lg mt-8 text-justify text-gray-700 leading-relaxed">
                         <p className="my-2">Say Hello</p>
                       </div>
                       <div>
-                      <span className="[&>svg]:h-6 [&>svg]:w-6 my-2">
+                      <span className="[&>svg]:h-10 [&>svg]:w-8 my-2">
                         <button
                           type="button"
                           data-twe-ripple-init
@@ -76,6 +76,7 @@ function LeadershipTeam() {
                               "_blank"
                             );
                           }}
+                          style={{backgroundColor: "#0077b5"}}
                           className="inline-block rounded bg-[#0077b5] px-6 py-2.5 text-xs font-medium uppercase leading-normal text-white shadow-md transition duration-150 ease-in-out hover:shadow-lg focus:shadow-lg focus:outline-none focus:ring-0 active:shadow-lg"
                         >
                           <span className="[&>svg]:h-4 [&>svg]:w-4">

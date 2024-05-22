@@ -1,62 +1,31 @@
-import { useEffect, useState } from "react";
-import { auth } from "../../config/firebase";
+import { useCallback, useEffect, useState } from "react";
+import { auth, db, storage } from "../../config/firebase";
 import { Navigate } from "react-router-dom";
 import { Header, HeaderProp, Sidebar } from "./components";
 import { JobDescType } from "../careers";
 import JobCareer from "./components/JobCareer";
 import { Dialog } from "@headlessui/react";
+import { v4 } from "uuid";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { addDoc, collection, getDocs } from "firebase/firestore";
 
-const job: JobDescType[] = [
-  {
-    id: "1",
-    status: true,
-    role: "Market Development Associate",
-    location: "Bengaluru, India",
-    type: "Full-time",
-    qualification: "Degree",
-    jd: "https://www.whiteboardtec.com/wp-content/uploads/2019/08/Market-Development-Associate-JD.pdf",
-  },
-  {
-    id: "2",
-    status: true,
-    role: "Structural Engineering Trainee",
-    location: "Bengaluru, India",
-    type: "Full-time",
-    qualification: "Degree",
-    jd: "https://www.whiteboardtec.com/wp-content/uploads/2019/08/Market-Development-Associate-JD.pdf",
-  },
-  {
-    id: "3",
-    status: true,
-    role: "Business Development Associate",
-    location: "Bengaluru, India",
-    type: "Full-time",
-    qualification: "Degree",
-    jd: "https://www.whiteboardtec.com/wp-content/uploads/2019/08/Market-Development-Associate-JD.pdf",
-  },
-  {
-    id: "4",
-    status: true,
-    role: "Business Development Manager",
-    location: "Bengaluru, India",
-    type: "Full-time",
-    qualification: "Degree",
-    jd: "https://www.whiteboardtec.com/wp-content/uploads/2019/08/Market-Development-Associate-JD.pdf",
-  },
-  {
-    id: "5",
-    status: true,
-    role: "Tekla Erector",
-    location: "Bengaluru, India",
-    type: "Full-time",
-    qualification: "Degree",
-    jd: "https://www.whiteboardtec.com/wp-content/uploads/2019/08/Market-Development-Associate-JD.pdf",
-  },
-];
 
 function AdminCareer() {
+  const [job, setJob] = useState<JobDescType[]>([]);
+
+  const fetchJob = useCallback(async () => {
+    const career = collection(db, "career");
+    const querySnapshot = await getDocs(career);
+    const data = querySnapshot.docs.map((doc) => ({
+      id: String(doc.id),
+      ...doc.data(),
+    }));
+    setJob(data as JobDescType[]); // Fix: Cast 'data' as 'JobDescType[]'
+  }, []);
+
   useEffect(() => {
     document.title = "Admin | Dashboard - Whiteboard";
+    fetchJob();
   });
 
   const header: HeaderProp = {
@@ -66,12 +35,70 @@ function AdminCareer() {
   const [location, setLocation] = useState("");
   const [type0, setType] = useState("");
   const [qualification, setQualification] = useState("");
-  const [jd, setJD] = useState("");
+  const [jd, setJD] = useState<any>(null);
   const [status, setStatus] = useState(false);
+  const [progress, setProgress] = useState<number>(0);
 
-  const handleSubmit = () => {
-    console.log(role, location, type0, qualification, jd, status);
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setProgress(0);
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentLoaded = (event.loaded / event.total) * 100;
+          setProgress(percentLoaded);
+        }
+      };
+
+      reader.onloadend = () => {
+        // setProgress(100); // Set progress to 100% when loading is complete
+        setJD(file);
+      };
+
+      reader.readAsDataURL(file);
+    }
+    console.log(file);
+    console.log(jd);
   };
+
+
+  const handleSubmit = useCallback( async () => {
+    // console.log(jd);
+    if (!jd) {
+      alert("Please add a Job Description File");
+      return;
+    }
+
+    const data = {
+      role: role,
+      location: location,
+      type: type0,
+      qualification: qualification,
+      jd: "",
+      status: status,
+    };
+
+    const jobDesc = ref(storage, `Careers/${role.replace(" ", "_")}_${v4()}`);
+    await uploadBytes(jobDesc, jd).then((val) => {
+      getDownloadURL(val.ref).then((url) => {
+        data.jd = url;
+        const career = collection(db, "career");
+        addDoc(career, data);
+      });
+    });
+    alert("Job Description Sucessfully Added");
+    fetchJob();
+    setJD(null);
+    setRole("");
+    setLocation("");
+    setType("");
+    setQualification("");
+    setStatus(false);
+    setProgress(0);
+    setOpen(false);
+  }, []);
 
   const [isOpen, setOpen] = useState(false);
 
@@ -200,9 +227,14 @@ function AdminCareer() {
                         type="file"
                         name="JD"
                         id="JD"
-                        onChange={(e) => setJD(e.target.value)}
+                        accept="application/pdf"
+                        onChange={handleFileChange}
                         className="border-2 border-gray-200 rounded-md mx-4 w-full"
                       />
+                      
+                    {progress > 0 && progress <= 100 && (
+                        <span className="mx-3 text-gray-600">{progress}%</span>
+                      )}
                     </td>
                   </tr>
                   <tr>
@@ -241,7 +273,7 @@ function AdminCareer() {
                     e.preventDefault();
                     handleSubmit();
                   }}
-                  className=" px-4 border-2 rounded-md bg-[#6abd45] text-white text-lg border-white drop-shadow-lg mx-3 hover:border-[#6abd45] hover:text-[#6abd45] hover:bg-white"
+                  className=" px-4 border-2 rounded-md bg-green-500 text-white text-lg border-white drop-shadow-lg mx-3 hover:border-[#6abd45] hover:text-[#6abd45] hover:bg-white"
                 >
                   Add
                 </button>
@@ -250,7 +282,7 @@ function AdminCareer() {
                   onClick={() => {
                     setOpen(false)
                   }}
-                  className=" px-4 border-2 rounded-md bg-slate-600 text-white text-lg border-white drop-shadow-lg mx-3 hover:border-slate-600 hover:text-slate-600 hover:bg-white"
+                  className=" px-4 border-2 rounded-md bg-red-600 text-white text-lg border-white drop-shadow-lg mx-3 hover:border-red-500 hover:text-red-500  hover:bg-white"
                 >
                   Cancel
                 </button>
@@ -313,6 +345,12 @@ function AdminCareer() {
                     className="px-3 py-3 text-center text-xs font-medium  uppercase"
                   >
                     Action
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3 text-center text-xs font-medium  uppercase"
+                  >
+                    Applications
                   </th>
                 </tr>
               </thead>

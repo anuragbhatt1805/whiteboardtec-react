@@ -5,7 +5,7 @@ import Estimate from "../../components/estimation/Estimate";
 
 const banner : BannerPropType = {
   header: "PEMB Detailing",
-  image: "/src/assets/image/banner-image/pemb-banner.jpg"
+  image: "https://firebasestorage.googleapis.com/v0/b/whiteboard-website.appspot.com/o/assets%2Fimage%2Fbanner-image%2Fpemb-banner.jpg?alt=media&token=e983bb4d-7ca1-4560-a11e-75f3bd3064e9"
 }
 
 const headSection:string[] = [
@@ -33,12 +33,12 @@ function PEMB() {
   return (
     <>
       <PageBanner {...banner} />
-      <div className="m-28 my-0 ">
-        <section className="rounded-3xl mt-3 border-4 p-2 grid grid-cols-[60%_40%] gap-3 shadow-xl drop-shadow-xl">
-          <div className="m-4 leading-loose text-gray-700">
+      <div className="m-28 my-0 mx-auto md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl">
+        <section className="rounded-3xl mt-3 border-2 p-2 grid grid-cols-[60%_40%] gap-3 shadow-md max-md:grid-cols-1">
+          <div className="m-4 leading-loose text-gray-700 order-1 max-md:order-2">
             {headSection?.map((desc, index) => {
               return (
-                <p key={index} className="text-justify text-sm leading-relaxed">
+                <p key={index} className="text-justify text-lg leading-relaxed">
                   {desc}
                 </p>
               );
@@ -49,8 +49,8 @@ function PEMB() {
       </div>
 
       <div className="bg-gray-100">
-        <div className="mx-28 pt-3 my-10">
-          <div className="text-4xl font-bold my-2 text-[#6abd45] mt-5">
+        <div className="mx-auto md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl pt-3 my-10">
+          <div className="text-4xl font-bold my-2 text-[#6abd45] mt-5 max-md:mx-2">
           Our Structural Design Engineering Portfolio Includes
           </div>
           <section className="mt-3 p-2 grid grid-cols-1 md:gap-x-10 md:grid-cols-2">
@@ -58,10 +58,10 @@ function PEMB() {
               return (
                 <div
                   key={index}
-                  className="py-1 md:py-2 flex flex-wrap flex-row items-center"
+                  className="py-1 md:py-2 flex flex-wrap flex-row items-start"
                 >
                   <svg
-                    className="h-4 w-4 text-[#6abd45] inline-flex"
+                    className="h-6 w-6 text-[#6abd45] inline-flex"
                     width="24"
                     height="24"
                     viewBox="0 0 24 24"
@@ -78,7 +78,7 @@ function PEMB() {
                       transform="rotate(90 12 12)"
                     />
                   </svg>
-                  <p className="text-sm inline-flex">{detail}</p>
+                  <p className="text-lg inline-flex max-md:w-[90%]">{detail}</p>
                 </div>
               );
             })}

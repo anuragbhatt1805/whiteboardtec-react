@@ -2,22 +2,82 @@ import { useState } from "react";
 import { PortfolioPropType } from "../../ourWork";
 import { Link } from "react-router-dom";
 import { Dialog } from "@headlessui/react";
+import { storage, db } from "../../../config/firebase";
+import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { v4 } from "uuid";
 
 function WorkPortfolio(props: PortfolioPropType) {
   const [isOpenJob, setOpenJob] = useState(false);
-  const [id] = useState(props.id);
   const [title, setTitle] = useState(props.title);
   const [description, setDescription] = useState(props.description);
-  const [pdf, setPdf] = useState(props.pdf);
-  const [images, setImages] = useState(props.images);
+  const [pdf, setPdf] = useState<any>(null);
   const [status, setStatus] = useState(props.status);
+  const [progress, setProgress] = useState<number>(0);
 
-  const handleUpdate = () => {
-    console.log(id, title, description, pdf, images, status);
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setProgress(0);
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentLoaded = (event.loaded / event.total) * 100;
+          setProgress(percentLoaded);
+        }
+      };
+
+      reader.onloadend = () => {
+        setProgress(100); // Set progress to 100% when loading is complete
+        setPdf(file);
+      };
+
+      reader.readAsDataURL(file);
+    }
   };
 
-  const handleDelete = () => {
-    console.log(id);
+  const handleUpdate = async () => {
+    // console.log(pdf);
+    const data = {
+      title: (props.title !== title) ? title : props.title,
+      description: (props.description !== description) ? description : props.description,
+      pdf: props.pdf,
+      status: (props.status !== status) ? status : props.status,
+    }
+
+    if (pdf){
+      const reference = ref(storage, props.pdf.split("?")[0]);
+    await deleteObject(reference).then(() => {
+      console.log("Old PDF Deleted");
+    }).catch((err)=>[
+      console.log(err)
+    ])
+
+    const pdfFile = ref(storage, `Portfolio/${title.replace(" ","_")}_${v4()}`);
+    await uploadBytes(pdfFile, pdf).then((snapshot) => {
+      getDownloadURL(snapshot.ref).then((url) => {
+        data.pdf = url;
+        const portfolio = doc(db, "portfolio", props.id);
+        updateDoc(portfolio, data);
+      });
+    })
+    } else {
+      const portfolioRef = doc(db, "portfolio", props.id);
+      await updateDoc(portfolioRef, data)
+    }
+    alert("Portfolio Project Updated successfully");
+    setOpenJob(false);
+  }
+
+  const handleDelete = async () => {
+    const reference = ref(storage, props.pdf.split("?")[0]);
+    await deleteObject(reference).then(() => {
+      console.log("Old PDF Deleted");
+    }).catch((err)=>[
+      console.log(err)
+    ])
+    await deleteDoc(doc(db, "portfolio", props.id))
   };
 
   return (
@@ -97,60 +157,7 @@ function WorkPortfolio(props: PortfolioPropType) {
                     />
                   </td>
                 </tr>
-
-                <tr>
-                  <td>
-                    <label htmlFor="image" className="text-sm text-gray-800">
-                      Images
-                    </label>
-                  </td>
-                  <td >
-                    {images?.map((_image, index) => (
-                      <div key={index} className="my-1 ml-3">
-                        <input
-                          type="file"
-                          name="image"
-                          id="image"
-                          onChange={(e) => {
-                            const newImages = [...images];
-                            newImages[index] = {
-                              ...newImages[index],
-                              url: e.target.value,
-                            };
-                            setImages(newImages);
-                          }}
-                          className="border-2 border-gray-200 rounded-md mx-2 w-fit"
-                        />
-                        <button
-                          type="button"
-                          className="text-red-500 ml-1"
-                          onClick={() => {
-                            const filteredImages = images.filter(
-                              (img, i) => i !== index
-                            );
-                            setImages(filteredImages);
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      className="bg-blue-500 text-white px-2 py-0.5 rounded-lg ml-10 mt-2"
-                      onClick={() => {
-                        const newImage = { url: "" };
-                        setImages((prevImages) => [
-                          ...(prevImages || []),
-                          newImage,
-                        ]);
-                      }}
-                    >
-                      { (images?.length == 0)? "Add Images":"Add More Images" }
-                    </button>
-                  </td>
-                </tr>
-
+                
                 <tr>
                   <td>
                     <label htmlFor="pdf" className="text-sm text-gray-800">
@@ -162,11 +169,13 @@ function WorkPortfolio(props: PortfolioPropType) {
                       type="file"
                       name="PDF"
                       id="PDF"
-                      onChange={(e) => {
-                        setPdf(e.target.value);
-                      }}
+                      accept="application/pdf"
+                      onChange={handleFileChange}
                       className="border-2 border-gray-200 rounded-md mx-4 w-full"
                     />
+                    {progress > 0 && progress <= 100 && (
+                      <span className="mx-3 text-gray-600">{progress}%</span>
+                    )}
                   </td>
                 </tr>
                 <tr>
@@ -203,7 +212,7 @@ function WorkPortfolio(props: PortfolioPropType) {
                     e.preventDefault();
                     handleUpdate();
                   }}
-                  className=" px-4 border-2 rounded-md bg-[#6abd45] text-white text-lg border-white drop-shadow-lg mx-3 hover:border-[#6abd45] hover:text-[#6abd45] hover:bg-white"
+                  className=" px-4 border-2 rounded-md bg-green-500 text-white text-lg border-white drop-shadow-lg mx-3 hover:border-[#6abd45] hover:text-[#6abd45] hover:bg-white"
                 >
                   Update
                 </button>

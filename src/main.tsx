@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import {
-  createBrowserRouter,
+  // createBrowserRouter,
+  createHashRouter,
   createRoutesFromElements,
   Route,
   RouterProvider
@@ -16,7 +17,7 @@ import {
 } from './pages/ourFirm'
 
 import {
-  Services,
+  // Services,
   ArchitecturalBIM,
   MiscellaneousSteel,
   PESEStampig,
@@ -26,7 +27,8 @@ import {
 } from './pages/services'
 import Error from './pages/error/Error.tsx'
 import {
-  OurWork, Portfolio
+  // OurWork, 
+  Portfolio
 } from './pages/ourWork'
 import {
   Resources,
@@ -46,21 +48,21 @@ import {
 } from './pages/admin'
 import "tw-elements-react/dist/css/tw-elements-react.min.css"
 
-const route = createBrowserRouter(
+const route = createHashRouter(
   createRoutesFromElements(
     <Route path="/" element={<App />}>
       <Route path="/our-firm" element={<OurFirm />} />
       <Route path="/our-firm/gallery" element={<Gallery />} />
       <Route path="/our-firm/leadership-teams" element={<LeadershipTeam />} />
       <Route path="/our-firm/business-model" element={<BusiessModel />} />
-      <Route path="/services" element={<Services />} />
+      <Route path="/services" element={<StructuralSteel />} />
       <Route path="/services/structural-steel-detailing" element={<StructuralSteel />} />
       <Route path="/services/miscellaneous-steel-detailing" element={<MiscellaneousSteel />} />
       <Route path="/services/connection-design-and-pe-se-stamping" element={<PESEStampig />} />
       <Route path="/services/architectural-bim-services" element={<ArchitecturalBIM />} />
       <Route path="/services/pemb-detailing" element={<PEMB />} />
       <Route path="/services/rebar-estimation-and-detailing" element={<Rebar />} />
-      <Route path="/our-work" element={<OurWork />} />
+      <Route path="/our-work" element={<Portfolio />} />
       <Route path="/our-work/project-portfolio" element={<Portfolio />} />
       <Route path="/portal" element={<Portal />} />
       <Route path="/career" element={<Careers />} />
